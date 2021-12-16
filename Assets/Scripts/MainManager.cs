@@ -3,6 +3,11 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using System.IO;
+
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 public class MainManager : MonoBehaviour
 {
@@ -11,17 +16,23 @@ public class MainManager : MonoBehaviour
     public Rigidbody Ball;
 
     public Text ScoreText;
+    public Text highScoreText;
     public GameObject GameOverText;
+
+    public static string playerNameString;
+    public Text playerName;
     
     private bool m_Started = false;
     private int m_Points;
     
     private bool m_GameOver = false;
 
-    
     // Start is called before the first frame update
     void Start()
     {
+        playerName.text = playerNameString + "'s";
+        highScoreText.text = "High Score: " + PlayerPrefs.GetInt("HighScore", 0);
+
         const float step = 0.6f;
         int perLine = Mathf.FloorToInt(4.0f / step);
         
@@ -60,17 +71,44 @@ public class MainManager : MonoBehaviour
                 SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
             }
         }
+
+        ScoreText.text = "score: " + m_Points;
     }
 
     void AddPoint(int point)
     {
         m_Points += point;
-        ScoreText.text = $"Score : {m_Points}";
     }
 
     public void GameOver()
     {
         m_GameOver = true;
         GameOverText.SetActive(true);
+    }
+
+    public void HighScore()
+    {
+        if (m_Points > PlayerPrefs.GetInt("HighScore", 0))
+        {
+            PlayerPrefs.GetInt("HighScore", m_Points);
+            PlayerPrefs.SetInt("HighScore", m_Points);
+            highScoreText.text = "High Score: " + m_Points;
+        }
+    }
+
+    // goes back to the main menu
+    public void ExitToMenu()
+    {
+        SceneManager.LoadScene(0);
+    }
+
+    // closes the game
+    public void ExitApp()
+    {
+    #if UNITY_EDITOR
+                        EditorApplication.ExitPlaymode();
+    #else
+        Application.Quit();
+    #endif
     }
 }
